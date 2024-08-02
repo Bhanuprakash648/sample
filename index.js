@@ -1,70 +1,41 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
+const port = 5000;
 app.use(bodyParser.json());
 
-// Helper function to process data
-const processData = (data) => {
-    let numbers = [];
-    let alphabets = [];
+app.use(express.static(path.join(__dirname, 'html')));
 
-    data.forEach(item => {
-        if (!isNaN(item)) {
-            numbers.push(item);
-        } else if (typeof item === 'string' && item.length === 1 && /^[a-zA-Z]$/.test(item)) {
-            alphabets.push(item);
-        }
-    });
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'html', 'index.html'));
+});
 
-    let highestAlphabet = alphabets.length ? [alphabets.sort((a, b) => b.localeCompare(a))[0]] : [];
-    
-    return { numbers, alphabets, highestAlphabet };
-};
-
-// POST method
 app.post('/bfhl', (req, res) => {
-    const { data } = req.body;
+    const data = req.body.data || [];
+    const numbers = data.filter(item => /^\d+$/.test(item));
+    const alphabets = data.filter(item => /^[a-zA-Z]+$/.test(item));
+    const highestAlphabet = alphabets.reduce((max, item) => item.toLowerCase() > max.toLowerCase() ? item : max, '');
 
-    if (!data || !Array.isArray(data)) {
-        return res.status(400).json({
-            is_success: false,
-            user_id: 'Bhanu_prakash_02102003', 
-            email: 'bhanuprakash@gmail.com', 
-            roll_number: 'AP21110010775',
-            message: 'Invalid input'
-        });
-    }
-
-    const { numbers, alphabets, highestAlphabet } = processData(data);
-
-    res.json({
+    const response = {
         is_success: true,
-        user_id: 'Bhanu_prakash_02102003', // Replace with your actual user ID format
-        email: 'bhanuprakash@gmail.com', // Replace with your actual email
-        roll_number: 'AP21110010775', // Replace with your actual roll number
-        numbers,
-        alphabets,
-        highest_alphabet: highestAlphabet
-    });
+        user_id: "Bhanu_prakash_02102003",
+        email: "bhanuprakash@gmail.com",
+        roll_number: "AP21110010775",
+        numbers: numbers,
+        alphabets: alphabets,
+        highest_alphabet: highestAlphabet ? [highestAlphabet] : []
+    };
+
+    console.log(`Stored data: ${data}`);
+    res.json(response);
 });
 
-// GET method
 app.get('/bfhl', (req, res) => {
-    res.json({
-        operation_code: 1
-    });
+    res.json({ operation_code: 1 });
 });
 
-app.get("/",(req,res)=>{
-    res.send("Hello, World!");
-}
-
-)
-
-app.listen(PORT, () => { 
-    console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
 });
