@@ -6,6 +6,11 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(bodyParser.json());
+app.use(cors({
+    credentials: true,
+    origin: ["http://127.0.0.1:5500/index.html"],
+  })
+);
 
 // Helper function to process data
 const processData = (data) => {
