@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AP21110010775</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 50%;
+            margin: 0 auto;
+            padding-top: 50px;
+        }
+        #error {
+            color: red;
+        }
+        #dropdown-container {
+            display: none;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Enter Data</h1>
+        <form id="dataForm">
+            <label for="data">Enter data (JSON format):</label><br>
+            <textarea id="data" name="data" rows="4" cols="50" required></textarea><br><br>
+            <button type="submit">Submit</button>
+        </form>
+        <p id="error"></p>
+        <div id="dropdown-container">
+            <label for="multi-filter">Multi Filter:</label>
+            <select id="multi-filter" multiple>
+                <option value="Alphabets">Alphabets</option>
+                <option value="Numbers">Numbers</option>
+                <option value="Highest Alphabet">Highest Alphabet</option>
+            </select>
+        </div>
+        <div class="response" id="filtered-response"></div>
+    </div>
+
+    <script>
+        document.getElementById('dataForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            let inputData = document.getElementById('data').value;
+
+            try {
+                let parsedData = JSON.parse(inputData);
+
+                // Validate JSON format
+                if (!Array.isArray(parsedData.data)) {
+                    throw new Error('Invalid JSON format. Expected an array for "data".');
+                }
+
+                // Clear previous error message
+                document.getElementById('error').textContent = '';
+
+                // Send POST request to the backend
+                fetch('https://sample-wchn.onrender.com/bfhl', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: parsedData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Store the response data
+                    window.responseData = data;
+
+                    // Show the dropdown container
+                    document.getElementById('dropdown-container').style.display = 'block';
+
+                    // Clear previous response
+                    document.getElementById('filtered-response').textContent = '';
+
+                    // Trigger the display of data based on selected options
+                    updateResponse();
+                })
+                .catch(error => {
+                    document.getElementById('error').textContent = 'Error: ' + error.message;
+                });
+            } catch (error) {
+                document.getElementById('error').textContent = 'Error: ' + error.message;
+            }
+        });
+
+        // Function to update response based on selected options
+        function updateResponse() {
+            let selectedOptions = Array.from(document.getElementById('multi-filter').selectedOptions).map(option => option.value);
+            let responseText = 'Filtered Response<br>';
+
+            // Build responseText based on selected options
+            if (selectedOptions.includes('Alphabets') && window.responseData.alphabets.length > 0) {
+                responseText += `Alphabets: ${window.responseData.alphabets.join(', ')}<br>`;
+            }
+            if (selectedOptions.includes('Numbers') && window.responseData.numbers.length > 0) {
+                responseText += `Numbers: ${window.responseData.numbers.join(', ')}<br>`;
+            }
+            if (selectedOptions.includes('Highest Alphabet') && window.responseData.highest_alphabet) {
+                responseText += `Highest Alphabet: ${window.responseData.highest_alphabet}<br>`;
+            }
+
+            document.getElementById('filtered-response').innerHTML = responseText || ' ';
+        }
+
+        // Add event listeners to dropdown to update data automatically
+        document.getElementById('multi-filter').addEventListener('change', updateResponse);
+    </script>
+</body>
+</html>
