@@ -1,14 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-<<<<<<< HEAD
 const path = require('path');
 
-=======
-const cors=require("cors");
->>>>>>> c899ca5dfe25a3332f158ca441852ebc6368a0f5
-    origin: ["http://127.0.0.1:5500/index.html"],
-  })
-);
+const app = express();
+const port = 5000;
+app.use(bodyParser.json());
 
 app.use(express.static(path.join(__dirname, 'html')));
 
